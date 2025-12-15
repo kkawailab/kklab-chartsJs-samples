@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12 - バブルチャート</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>12 - バブルチャート</h1>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>バブルチャート(type: 'bubble')の作成方法</li>
+                <li>データを{x, y, r}オブジェクト形式で指定（rはバブルの半径）</li>
+                <li>3つの次元のデータを2D空間で表現</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const data = {
+            datasets: [
+                {
+                    label: 'IT企業',
+                    data: [
+                        { x: 80, y: 90, r: 25 },
+                        { x: 70, y: 85, r: 18 },
+                        { x: 60, y: 75, r: 12 }
+                    ],
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)'
+                },
+                {
+                    label: '製造業',
+                    data: [
+                        { x: 50, y: 65, r: 30 },
+                        { x: 45, y: 55, r: 20 },
+                        { x: 55, y: 70, r: 15 }
+                    ],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)'
+                },
+                {
+                    label: '小売業',
+                    data: [
+                        { x: 35, y: 45, r: 22 },
+                        { x: 40, y: 50, r: 16 },
+                        { x: 30, y: 40, r: 28 }
+                    ],
+                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                    borderColor: 'rgba(255, 206, 86, 1)'
+                }
+            ]
+        };
+
+        const config = {
+            type: 'bubble',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '業界別企業分析（X: 成長率, Y: 利益率, サイズ: 従業員数）'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const data = context.raw;
+                                return `${context.dataset.label}: 成長率 ${data.x}%, 利益率 ${data.y}%, 従業員 ${data.r * 100}人`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '成長率（%）'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '利益率（%）'
+                        }
+                    }
+                }
+            }
+        };
+
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

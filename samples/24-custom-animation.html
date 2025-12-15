@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24 - アニメーションのカスタマイズ</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .controls button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>24 - アニメーションのカスタマイズ</h1>
+        <div class="controls">
+            <button onclick="playAnimation('easeOutBounce')">バウンス</button>
+            <button onclick="playAnimation('easeOutElastic')">エラスティック</button>
+            <button onclick="playAnimation('easeInOutQuart')">スムーズ</button>
+            <button onclick="playAnimation('linear')">リニア</button>
+            <button onclick="resetData()">データ変更</button>
+        </div>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>animation.easingでイージング関数を指定</li>
+                <li>animation.durationでアニメーション時間を制御</li>
+                <li>animation.delayでデータセットごとに遅延</li>
+                <li>onProgress, onCompleteコールバック</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        let myChart;
+
+        function generateData() {
+            return Array.from({ length: 6 }, () => Math.floor(Math.random() * 100) + 20);
+        }
+
+        function createChart(easing = 'easeOutQuart') {
+            const data = {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                datasets: [
+                    {
+                        label: 'データセット1',
+                        data: generateData(),
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'データセット2',
+                        data: generateData(),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2
+                    }
+                ]
+            };
+
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2000,
+                        easing: easing,
+                        delay: function(context) {
+                            let delay = 0;
+                            if (context.type === 'data' && context.mode === 'default') {
+                                delay = context.dataIndex * 100 + context.datasetIndex * 200;
+                            }
+                            return delay;
+                        },
+                        onProgress: function(animation) {
+                            // アニメーション進行中のコールバック
+                        },
+                        onComplete: function() {
+                            console.log('アニメーション完了');
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `アニメーション: ${easing}`
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 150
+                        }
+                    }
+                }
+            };
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, config);
+        }
+
+        function playAnimation(easing) {
+            createChart(easing);
+        }
+
+        function resetData() {
+            if (myChart) {
+                myChart.data.datasets.forEach(dataset => {
+                    dataset.data = generateData();
+                });
+                myChart.update();
+            }
+        }
+
+        // 初期表示
+        createChart();
+    </script>
+</body>
+</html>

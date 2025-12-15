@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>22 - ドリルダウン機能</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .breadcrumb span {
+            color: #666;
+        }
+        .breadcrumb a {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        .hint {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>22 - ドリルダウン機能</h1>
+        <div class="breadcrumb" id="breadcrumb">
+            <span>現在の表示:</span>
+            <a onclick="showMainChart()">全地域</a>
+        </div>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="hint" id="hint">バーをクリックすると詳細を表示します</div>
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>onClick イベントで要素のクリックを検出</li>
+                <li>getElementsAtEventForMode()でクリックされた要素を取得</li>
+                <li>チャートデータの動的な切り替え</li>
+                <li>階層的なデータ構造の表現</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        let myChart;
+        let currentLevel = 'main';
+
+        // 階層データ
+        const mainData = {
+            labels: ['関東', '関西', '中部', '九州', '北海道'],
+            data: [450, 320, 180, 150, 100],
+            colors: [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+            ]
+        };
+
+        const detailData = {
+            '関東': {
+                labels: ['東京', '神奈川', '千葉', '埼玉', '茨城'],
+                data: [200, 100, 60, 50, 40]
+            },
+            '関西': {
+                labels: ['大阪', '京都', '兵庫', '奈良', '滋賀'],
+                data: [150, 70, 50, 30, 20]
+            },
+            '中部': {
+                labels: ['愛知', '静岡', '長野', '岐阜', '新潟'],
+                data: [80, 40, 25, 20, 15]
+            },
+            '九州': {
+                labels: ['福岡', '熊本', '鹿児島', '長崎', '大分'],
+                data: [60, 30, 25, 20, 15]
+            },
+            '北海道': {
+                labels: ['札幌', '旭川', '函館', '釧路', '帯広'],
+                data: [50, 20, 15, 10, 5]
+            }
+        };
+
+        function createChart(labels, data, colors, title) {
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '売上（百万円）',
+                        data: data,
+                        backgroundColor: colors || 'rgba(54, 162, 235, 0.7)',
+                        borderColor: colors ? colors.map(c => c.replace('0.7', '1')) : 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: handleClick,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '売上（百万円）'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function handleClick(event, elements) {
+            if (elements.length === 0 || currentLevel !== 'main') return;
+
+            const index = elements[0].index;
+            const region = mainData.labels[index];
+            const detail = detailData[region];
+
+            if (detail) {
+                showDetailChart(region, detail);
+            }
+        }
+
+        function showMainChart() {
+            currentLevel = 'main';
+            createChart(
+                mainData.labels,
+                mainData.data,
+                mainData.colors,
+                '地域別売上'
+            );
+            document.getElementById('breadcrumb').innerHTML = `
+                <span>現在の表示:</span>
+                <a onclick="showMainChart()">全地域</a>
+            `;
+            document.getElementById('hint').textContent = 'バーをクリックすると詳細を表示します';
+        }
+
+        function showDetailChart(region, detail) {
+            currentLevel = 'detail';
+            createChart(
+                detail.labels,
+                detail.data,
+                null,
+                `${region}エリア 都道府県別売上`
+            );
+            document.getElementById('breadcrumb').innerHTML = `
+                <span>現在の表示:</span>
+                <a onclick="showMainChart()">全地域</a>
+                <span>></span>
+                <span>${region}</span>
+            `;
+            document.getElementById('hint').textContent = '「全地域」をクリックして戻る';
+        }
+
+        // 初期表示
+        showMainChart();
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>05 - ドーナツチャート</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>05 - ドーナツチャート</h1>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>ドーナツチャート(type: 'doughnut')の作成方法</li>
+                <li>cutoutで中央の穴のサイズを調整</li>
+                <li>円グラフとの違い（中央に穴がある）</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const data = {
+            labels: ['Chrome', 'Safari', 'Firefox', 'Edge', 'その他'],
+            datasets: [{
+                label: 'ブラウザシェア',
+                data: [65, 18, 7, 5, 5],
+                backgroundColor: [
+                    'rgba(66, 133, 244, 0.8)',
+                    'rgba(0, 122, 255, 0.8)',
+                    'rgba(255, 149, 0, 0.8)',
+                    'rgba(0, 120, 212, 0.8)',
+                    'rgba(128, 128, 128, 0.8)'
+                ],
+                borderColor: 'white',
+                borderWidth: 3,
+                hoverOffset: 15
+            }]
+        };
+
+        const config = {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Webブラウザ市場シェア 2024'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        };
+
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

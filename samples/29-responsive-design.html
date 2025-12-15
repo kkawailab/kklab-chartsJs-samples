@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>29 - レスポンシブデザイン</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .size-indicator {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .charts-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .chart-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+        .chart-title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        .chart-container.tall {
+            height: 300px;
+        }
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>29 - レスポンシブデザイン</h1>
+        <div class="size-indicator" id="sizeIndicator">
+            画面サイズ: <span id="screenSize"></span>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">売上推移</div>
+                <div class="chart-container">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">カテゴリ別シェア</div>
+                <div class="chart-container">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card full-width">
+                <div class="chart-title">地域別売上比較</div>
+                <div class="chart-container tall">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>responsive: true でチャートを自動リサイズ</li>
+                <li>maintainAspectRatio: false で親要素にフィット</li>
+                <li>CSS Gridとメディアクエリでレイアウト調整</li>
+                <li>aspectRatioでチャートの縦横比を制御</li>
+                <li>onResize コールバックでリサイズイベントをハンドル</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 画面サイズ表示の更新
+        function updateSizeIndicator() {
+            const width = window.innerWidth;
+            let sizeLabel = 'Desktop (大)';
+            if (width < 576) sizeLabel = 'Mobile (小)';
+            else if (width < 768) sizeLabel = 'Tablet (中)';
+            else if (width < 992) sizeLabel = 'Small Desktop';
+
+            document.getElementById('screenSize').textContent = `${width}px - ${sizeLabel}`;
+        }
+
+        window.addEventListener('resize', updateSizeIndicator);
+        updateSizeIndicator();
+
+        // 共通のレスポンシブオプション
+        const responsiveOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            onResize: function(chart, size) {
+                // リサイズ時の処理（必要に応じて）
+                console.log('Chart resized:', size.width, size.height);
+            }
+        };
+
+        // 折れ線グラフ
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                datasets: [{
+                    label: '売上',
+                    data: [65, 78, 90, 85, 92, 105],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...responsiveOptions,
+                plugins: {
+                    legend: {
+                        display: window.innerWidth > 576,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: window.innerWidth < 576 ? 45 : 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // ドーナツチャート
+        const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+        new Chart(doughnutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['電子機器', '家電', '日用品', 'その他'],
+                datasets: [{
+                    data: [35, 28, 22, 15],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                ...responsiveOptions,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: window.innerWidth < 576 ? 'bottom' : 'right',
+                        labels: {
+                            boxWidth: window.innerWidth < 576 ? 12 : 20,
+                            font: {
+                                size: window.innerWidth < 576 ? 10 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 棒グラフ
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['東京', '大阪', '名古屋', '福岡', '札幌', '仙台', '広島', '京都'],
+                datasets: [
+                    {
+                        label: '2023年',
+                        data: [120, 95, 78, 65, 45, 38, 42, 55],
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                    },
+                    {
+                        label: '2024年',
+                        data: [140, 110, 85, 72, 52, 45, 48, 62],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    }
+                ]
+            },
+            options: {
+                ...responsiveOptions,
+                indexAxis: window.innerWidth < 576 ? 'y' : 'x',
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            font: {
+                                size: window.innerWidth < 576 ? 10 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

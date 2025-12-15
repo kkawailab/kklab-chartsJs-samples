@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>26 - HTML カスタムツールチップ</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .chart-wrapper {
+            position: relative;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        #tooltip {
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            padding: 15px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+            min-width: 200px;
+        }
+        #tooltip.active {
+            opacity: 1;
+        }
+        .tooltip-header {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .tooltip-label {
+            color: #666;
+        }
+        .tooltip-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .tooltip-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .badge-up {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>26 - HTML カスタムツールチップ</h1>
+        <div class="chart-wrapper">
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div id="tooltip"></div>
+        </div>
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>tooltip.enabled: false でデフォルトツールチップを無効化</li>
+                <li>tooltip.external でカスタムHTMLツールチップを実装</li>
+                <li>HTMLでリッチなコンテンツを表示</li>
+                <li>CSSでツールチップのスタイルを自由にカスタマイズ</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const salesData = [
+            { month: '1月', sales: 120, target: 100, lastYear: 90, growth: 33 },
+            { month: '2月', sales: 150, target: 130, lastYear: 110, growth: 36 },
+            { month: '3月', sales: 180, target: 160, lastYear: 140, growth: 29 },
+            { month: '4月', sales: 170, target: 180, lastYear: 165, growth: 3 },
+            { month: '5月', sales: 200, target: 190, lastYear: 180, growth: 11 },
+            { month: '6月', sales: 230, target: 210, lastYear: 195, growth: 18 }
+        ];
+
+        const externalTooltipHandler = (context) => {
+            const { chart, tooltip } = context;
+            const tooltipEl = document.getElementById('tooltip');
+
+            if (tooltip.opacity === 0) {
+                tooltipEl.classList.remove('active');
+                return;
+            }
+
+            if (tooltip.body) {
+                const dataIndex = tooltip.dataPoints[0].dataIndex;
+                const data = salesData[dataIndex];
+
+                const growthBadge = data.growth >= 20
+                    ? `<span class="tooltip-badge badge-up">+${data.growth}% 好調</span>`
+                    : data.growth < 10
+                    ? `<span class="tooltip-badge badge-down">+${data.growth}% 要注意</span>`
+                    : `<span class="tooltip-badge badge-up">+${data.growth}%</span>`;
+
+                const achievementRate = Math.round((data.sales / data.target) * 100);
+
+                tooltipEl.innerHTML = `
+                    <div class="tooltip-header">${data.month}の実績</div>
+                    <div class="tooltip-row">
+                        <span class="tooltip-label">売上</span>
+                        <span class="tooltip-value">${data.sales}万円</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="tooltip-label">目標</span>
+                        <span class="tooltip-value">${data.target}万円</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="tooltip-label">達成率</span>
+                        <span class="tooltip-value">${achievementRate}%</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="tooltip-label">前年同月</span>
+                        <span class="tooltip-value">${data.lastYear}万円</span>
+                    </div>
+                    <div class="tooltip-row">
+                        <span class="tooltip-label">前年比</span>
+                        ${growthBadge}
+                    </div>
+                `;
+            }
+
+            const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
+
+            tooltipEl.style.left = positionX + tooltip.caretX + 'px';
+            tooltipEl.style.top = positionY + tooltip.caretY + 'px';
+            tooltipEl.classList.add('active');
+        };
+
+        const data = {
+            labels: salesData.map(d => d.month),
+            datasets: [{
+                label: '売上',
+                data: salesData.map(d => d.sales),
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '月別売上（HTMLツールチップ）'
+                    },
+                    tooltip: {
+                        enabled: false,
+                        external: externalTooltipHandler
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>
