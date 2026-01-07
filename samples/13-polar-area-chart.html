@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13 - 極座標エリアチャート</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>13 - 極座標エリアチャート</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>極座標エリアチャート(type: 'polarArea')の作成方法</li>
+                <li>各セグメントの角度は同じで、半径がデータ値を表す</li>
+                <li>円グラフとレーダーチャートの特徴を併せ持つ</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 極座標エリアチャート（Polar Area Chart）の作成 =====
+        // 極座標エリアチャートは円グラフに似ているが、
+        // 各セグメントの角度は同じで、半径でデータ値を表現する
+        // データの大小を視覚的に比較しやすい
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: 各セグメントのラベル
+            labels: ['営業', '開発', 'マーケティング', 'サポート', '管理'],
+
+            datasets: [{
+                label: '部門別予算配分（百万円）',
+                // data: 各セグメントの値（半径を決定）
+                // 値が大きいほど、セグメントの半径が大きくなる
+                data: [35, 80, 25, 15, 20],
+
+                // backgroundColor: 各セグメントの色
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',   // 営業
+                    'rgba(54, 162, 235, 0.7)',   // 開発
+                    'rgba(255, 206, 86, 0.7)',   // マーケティング
+                    'rgba(75, 192, 192, 0.7)',   // サポート
+                    'rgba(153, 102, 255, 0.7)'   // 管理
+                ],
+
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+
+                borderWidth: 2
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: 'polarArea' で極座標エリアチャートを作成
+            type: 'polarArea',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '部門別年間予算配分'
+                    },
+
+                    legend: {
+                        position: 'right'
+                    }
+                },
+
+                // scales: 極座標チャートでは 'r'（radial）軸を設定
+                scales: {
+                    r: {
+                        // beginAtZero: 中心を0から開始
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

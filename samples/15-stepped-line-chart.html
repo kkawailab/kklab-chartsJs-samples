@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15 - ステップ線グラフ</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>15 - ステップ線グラフ</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>steppedプロパティでステップ線を作成</li>
+                <li>'before', 'after', 'middle', true/false の値を指定可能</li>
+                <li>離散的な変化を表現するのに適している</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== ステップ線グラフ（Stepped Line Chart）の作成 =====
+        // ステップ線グラフは離散的な変化を表現するのに適している
+        // 例：料金プランの段階的な変化、在庫数の変動など
+        // データポイント間を直線ではなく階段状に結ぶ
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            labels: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+
+            datasets: [
+                {
+                    label: 'プランA（before）',
+                    data: [1000, 1000, 1200, 1200, 1500, 1500, 1800, 1800, 2000],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    fill: true,
+                    // ★ stepped: ステップ線のタイプを指定
+                    // 'before': 次のデータポイントの手前でステップ（値が先に変化）
+                    stepped: 'before'
+                },
+                {
+                    label: 'プランB（after）',
+                    data: [800, 900, 900, 1100, 1100, 1400, 1400, 1600, 1600],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    fill: true,
+                    // 'after': データポイントの後でステップ（値が後から変化）
+                    stepped: 'after'
+                },
+                {
+                    label: 'プランC（middle）',
+                    data: [600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    fill: true,
+                    // 'middle': データポイント間の中央でステップ
+                    stepped: 'middle'
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'line',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '料金プラン別 累積料金推移（ステップ表示）'
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '料金（円）'
+                        }
+                    }
+                },
+
+                // interaction: ホバー時の動作
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

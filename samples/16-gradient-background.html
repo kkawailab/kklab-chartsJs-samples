@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16 - グラデーション背景</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>16 - グラデーション背景</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>Canvas APIのcreateLinearGradientを使用</li>
+                <li>グラデーションをbackgroundColorに適用</li>
+                <li>視覚的に美しいチャートを作成</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== グラデーション背景のチャート =====
+        // Canvas APIのcreateLinearGradientを使用して
+        // 美しいグラデーション効果を追加できる
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // ★ グラデーションの作成
+        // createLinearGradient(x0, y0, x1, y1)
+        // (x0, y0): グラデーションの開始点
+        // (x1, y1): グラデーションの終了点
+        // この例では上(0)から下(400)へ縦方向のグラデーション
+        const gradient1 = ctx.createLinearGradient(0, 0, 0, 400);
+        // addColorStop(位置, 色): 位置は0〜1の範囲
+        // 0 = 開始点、1 = 終了点
+        gradient1.addColorStop(0, 'rgba(255, 99, 132, 0.8)');   // 上部: 濃い赤
+        gradient1.addColorStop(1, 'rgba(255, 99, 132, 0.1)');   // 下部: 薄い赤
+
+        // 2つ目のデータセット用のグラデーション
+        const gradient2 = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient2.addColorStop(0, 'rgba(54, 162, 235, 0.8)');   // 上部: 濃い青
+        gradient2.addColorStop(1, 'rgba(54, 162, 235, 0.1)');   // 下部: 薄い青
+
+        // チャートのデータ定義
+        const data = {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+
+            datasets: [
+                {
+                    label: 'ユーザーA',
+                    data: [30, 45, 60, 55, 70, 85],
+                    fill: true,
+                    // ★ backgroundColorにグラデーションを適用
+                    // 通常の色指定の代わりにグラデーションオブジェクトを使用
+                    backgroundColor: gradient1,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                    pointRadius: 5
+                },
+                {
+                    label: 'ユーザーB',
+                    data: [20, 35, 40, 50, 55, 65],
+                    fill: true,
+                    backgroundColor: gradient2,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                    pointRadius: 5
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'line',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'ユーザー活動推移（グラデーション背景）'
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

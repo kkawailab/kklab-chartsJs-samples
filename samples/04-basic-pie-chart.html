@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04 - 基本的な円グラフ</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        /* 円グラフは幅を狭めて見やすくする */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* チャートの高さを固定 */
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>04 - 基本的な円グラフ</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>円グラフ(type: 'pie')の作成方法</li>
+                <li>データの割合が自動的に計算される</li>
+                <li>hoverOffsetでホバー時のエフェクト</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 円グラフ（パイチャート）の作成 =====
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: 各セクター（扇形）のラベル
+            labels: ['食費', '住居費', '交通費', '娯楽費', '貯蓄', 'その他'],
+
+            datasets: [{
+                label: '月間支出',
+
+                // data: 各セクターの値
+                // 円グラフでは値の割合が自動計算される
+                // 例: 30000 / (30000+80000+15000+20000+40000+15000) = 15%
+                data: [30000, 80000, 15000, 20000, 40000, 15000],
+
+                // backgroundColor: 各セクターの色
+                // 配列の順番がlabelsとdataの順番に対応
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',   // 食費 - 赤
+                    'rgba(54, 162, 235, 0.8)',   // 住居費 - 青
+                    'rgba(255, 206, 86, 0.8)',   // 交通費 - 黄
+                    'rgba(75, 192, 192, 0.8)',   // 娯楽費 - シアン
+                    'rgba(153, 102, 255, 0.8)', // 貯蓄 - 紫
+                    'rgba(255, 159, 64, 0.8)'   // その他 - オレンジ
+                ],
+
+                // borderColor: 各セクターの境界線の色
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+
+                // borderWidth: 境界線の太さ
+                borderWidth: 2,
+
+                // hoverOffset: マウスホバー時にセクターが飛び出す距離（ピクセル）
+                // 値を大きくすると、より目立つエフェクトになる
+                hoverOffset: 10
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: 'pie' で円グラフを作成
+            type: 'pie',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    // title: チャートのタイトル
+                    title: {
+                        display: true,
+                        text: '月間家計支出の内訳'
+                    },
+
+                    // legend: 凡例の設定
+                    legend: {
+                        // position: 凡例の位置
+                        // 'top', 'bottom', 'left', 'right' から選択
+                        position: 'right'
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

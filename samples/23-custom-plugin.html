@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>23 - カスタムプラグイン</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>23 - カスタムプラグイン</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>カスタムプラグインの作成方法</li>
+                <li>beforeDraw, afterDraw等のフック関数</li>
+                <li>Canvasの描画コンテキストを使ったカスタム描画</li>
+                <li>プラグインの登録と使用</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== カスタムプラグインの作成 =====
+        // Chart.jsはプラグインシステムを通じて機能を拡張できる
+        // プラグインはフック関数（beforeDraw, afterDraw等）を使用
+
+        // ★ プラグイン1: 中央にテキストを表示
+        // ドーナツチャートの中央にテキストを表示するプラグイン
+        const centerTextPlugin = {
+            // id: プラグインの一意な識別子
+            id: 'centerText',
+
+            // ★ beforeDraw: チャートが描画される前に実行
+            // chart: Chartインスタンス
+            // args: 追加の引数
+            // options: プラグインのオプション（config.options.plugins.centerTextで指定）
+            beforeDraw: function(chart, args, options) {
+                // ドーナツチャート以外では何もしない
+                if (chart.config.type !== 'doughnut') return;
+
+                // 描画コンテキストとサイズを取得
+                const { ctx, width, height } = chart;
+
+                // 現在の描画状態を保存
+                ctx.save();
+
+                // オプションからテキストを取得
+                const text = options.text || '';
+                const subText = options.subText || '';
+
+                // メインテキストを描画
+                ctx.font = 'bold 36px Arial';
+                ctx.fillStyle = options.color || '#333';
+                ctx.textAlign = 'center';          // 水平方向中央揃え
+                ctx.textBaseline = 'middle';       // 垂直方向中央揃え
+                ctx.fillText(text, width / 2, height / 2 - 15);
+
+                // サブテキストを描画
+                ctx.font = '16px Arial';
+                ctx.fillStyle = options.subColor || '#666';
+                ctx.fillText(subText, width / 2, height / 2 + 20);
+
+                // 描画状態を復元
+                ctx.restore();
+            }
+        };
+
+        // ★ プラグイン2: 背景色を設定
+        // チャート全体の背景色を設定するプラグイン
+        const backgroundColorPlugin = {
+            id: 'backgroundColor',
+
+            beforeDraw: function(chart, args, options) {
+                const { ctx, width, height } = chart;
+                ctx.save();
+                // 背景色を塗りつぶし
+                ctx.fillStyle = options.color || 'white';
+                ctx.fillRect(0, 0, width, height);
+                ctx.restore();
+            }
+        };
+
+        // ★ プラグイン3: チャートエリアに枠線を描画
+        const borderPlugin = {
+            id: 'chartBorder',
+
+            // ★ afterDraw: チャートが描画された後に実行
+            afterDraw: function(chart, args, options) {
+                // chartAreaはチャートの描画エリアの座標
+                const { ctx, chartArea: { left, top, right, bottom } } = chart;
+                ctx.save();
+                ctx.strokeStyle = options.color || '#ccc';
+                ctx.lineWidth = options.width || 2;
+                // 枠線を描画
+                ctx.strokeRect(left, top, right - left, bottom - top);
+                ctx.restore();
+            }
+        };
+
+        // ★ プラグインをグローバルに登録
+        // 登録すると、すべてのチャートで使用可能になる
+        Chart.register(centerTextPlugin, backgroundColorPlugin, borderPlugin);
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // 総売上（中央に表示）
+        const totalSales = 258;
+
+        // チャートのデータ定義
+        const data = {
+            labels: ['商品A', '商品B', '商品C', '商品D'],
+            datasets: [{
+                data: [85, 72, 58, 43],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',  // 中央の穴を大きくしてテキスト表示スペースを確保
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '商品別売上構成（カスタムプラグイン適用）'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    },
+
+                    // ★ カスタムプラグインのオプション
+                    // プラグインIDと同じ名前でオプションを指定
+                    centerText: {
+                        text: totalSales + '億',
+                        subText: '総売上',
+                        color: '#333',
+                        subColor: '#666'
+                    },
+                    backgroundColor: {
+                        color: '#fafafa'
+                    },
+                    chartBorder: {
+                        color: '#ddd',
+                        width: 2
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

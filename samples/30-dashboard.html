@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 - ダッシュボード（複数チャート）</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ダークテーマのページスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* ダークな背景色 */
+            background-color: #1a1a2e;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* ===== ダッシュボードコンテナ ===== */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== ダッシュボードヘッダー ===== */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            /* グラデーション背景 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .dashboard-date {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* ===== KPIカード行（CSS Grid）===== */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* ★ レスポンシブ対応：タブレット */
+        @media (max-width: 992px) {
+            .kpi-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ★ レスポンシブ対応：モバイル */
+        @media (max-width: 576px) {
+            .kpi-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== KPIカード ===== */
+        .kpi-card {
+            /* ダークテーマのカード背景 */
+            background: #16213e;
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        /* 前月比の表示 */
+        .kpi-change {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* プラス（良い変化） */
+        .kpi-change.positive {
+            color: #4ade80;
+        }
+
+        /* マイナス（悪い変化） */
+        .kpi-change.negative {
+            color: #f87171;
+        }
+
+        /* ===== チャート行（2列レイアウト）===== */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 992px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== チャートカード ===== */
+        .chart-card {
+            background: #16213e;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .chart-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-card-title {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .chart-container.large {
+            height: 300px;
+        }
+
+        /* ===== 3列のチャート行 ===== */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 992px) {
+            .bottom-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== 説明セクション ===== */
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #16213e;
+            border-radius: 15px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .description strong {
+            color: white;
+        }
+
+        .description ul {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+
+        .description li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- ===== ダッシュボードヘッダー ===== -->
+        <div class="dashboard-header">
+            <div>
+                <div class="dashboard-title">営業ダッシュボード</div>
+                <div class="dashboard-date" id="currentDate"></div>
+            </div>
+            <div class="dashboard-date">リアルタイム更新中</div>
+        </div>
+
+        <!-- ===== KPIカード行 ===== -->
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">総売上</div>
+                <div class="kpi-value">¥12.8M</div>
+                <div class="kpi-change positive">+12.5% 前月比</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">注文数</div>
+                <div class="kpi-value">1,234</div>
+                <div class="kpi-change positive">+8.3% 前月比</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">平均注文額</div>
+                <div class="kpi-value">¥10,380</div>
+                <div class="kpi-change positive">+3.8% 前月比</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">返品率</div>
+                <div class="kpi-value">2.1%</div>
+                <div class="kpi-change negative">+0.3% 前月比</div>
+            </div>
+        </div>
+
+        <!-- ===== メインチャート行 ===== -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">売上推移</div>
+                </div>
+                <div class="chart-container large">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">カテゴリ別売上</div>
+                </div>
+                <div class="chart-container large">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== サブチャート行（3列）===== -->
+        <div class="bottom-row">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">地域別売上</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="regionChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">商品パフォーマンス</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="productChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">時間帯別アクセス</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>複数のチャートを1つのページに配置</li>
+                <li>CSS GridとFlexboxでレスポンシブレイアウト</li>
+                <li>ダークテーマのスタイリング</li>
+                <li>KPIカードとチャートの組み合わせ</li>
+                <li>Chart.jsのdefaultsでグローバルスタイルを設定</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== ダッシュボード（複数チャート）=====
+        // 実務的なダッシュボードの例
+        // Chart.jsのデフォルト設定を変更してダークテーマに対応
+
+        // ★ 現在日時を表示
+        document.getElementById('currentDate').textContent =
+            new Date().toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+
+        // ★ Chart.jsのグローバルスタイル設定
+        // Chart.defaults で全チャートに適用されるデフォルト値を変更
+        Chart.defaults.color = '#888';  // テキストの色
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';  // グリッド線の色
+
+        // ★ 共通オプション（全チャートで使用）
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#888'
+                    }
+                }
+            }
+        };
+
+        // ===== 売上推移チャート（折れ線）=====
+        new Chart(document.getElementById('salesChart'), {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                datasets: [
+                    {
+                        label: '今年',
+                        data: [8.2, 9.1, 10.5, 9.8, 11.2, 12.8, 13.5, 12.9, 14.2, 15.1, 14.8, 16.5],
+                        borderColor: '#667eea',  // パープル系
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: '昨年',
+                        data: [7.5, 8.2, 9.1, 8.5, 9.8, 10.5, 11.2, 10.8, 12.1, 12.8, 12.5, 14.2],
+                        borderColor: '#764ba2',  // ピンク系
+                        borderDash: [5, 5],  // 破線
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            // Y軸のラベルをカスタマイズ
+                            callback: value => '¥' + value + 'M'
+                        }
+                    }
+                }
+            }
+        });
+
+        // ===== カテゴリ別チャート（ドーナツ）=====
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['電子機器', '家電', 'ファッション', '食品', 'その他'],
+                datasets: [{
+                    data: [35, 25, 20, 12, 8],
+                    // ダークテーマに合う鮮やかな色
+                    backgroundColor: [
+                        '#667eea',
+                        '#764ba2',
+                        '#f093fb',
+                        '#f5576c',
+                        '#4facfe'
+                    ],
+                    borderWidth: 0  // 枠線なし
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '70%',  // 中央の穴を大きく
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // ===== 地域別チャート（横棒）=====
+        new Chart(document.getElementById('regionChart'), {
+            type: 'bar',
+            data: {
+                labels: ['関東', '関西', '中部', '九州', '北海道'],
+                datasets: [{
+                    label: '売上',
+                    data: [45, 32, 18, 15, 10],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderRadius: 5  // バーの角を丸く
+                }]
+            },
+            options: {
+                ...commonOptions,
+                indexAxis: 'y',  // 横棒グラフ
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // ===== 商品パフォーマンス（レーダー）=====
+        new Chart(document.getElementById('productChart'), {
+            type: 'radar',
+            data: {
+                labels: ['売上', '利益率', '在庫回転', '顧客満足', 'リピート率'],
+                datasets: [{
+                    label: '商品A',
+                    data: [85, 70, 90, 80, 75],
+                    backgroundColor: 'rgba(102, 126, 234, 0.3)',
+                    borderColor: '#667eea',
+                    pointBackgroundColor: '#667eea'
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            display: false  // 目盛り数値を非表示
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        angleLines: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        pointLabels: {
+                            color: '#888'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // ===== 時間帯別アクセス（棒グラフ）=====
+        new Chart(document.getElementById('hourlyChart'), {
+            type: 'bar',
+            data: {
+                labels: ['6時', '9時', '12時', '15時', '18時', '21時', '24時'],
+                datasets: [{
+                    label: 'アクセス数',
+                    data: [120, 450, 680, 520, 890, 750, 320],
+                    // ★ 条件付きの色設定
+                    // contextを使ってデータ値に応じて色を変える
+                    backgroundColor: (context) => {
+                        const value = context.dataset.data[context.dataIndex];
+                        // 700を超えるとハイライト色（赤）
+                        return value > 700 ? '#f5576c' : 'rgba(102, 126, 234, 0.8)';
+                    },
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

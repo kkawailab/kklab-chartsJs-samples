@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>09 - 積み重ね棒グラフ</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>09 - 積み重ね棒グラフ</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>scales.x.stacked と scales.y.stacked を true に設定</li>
+                <li>各データセットが積み重ねて表示される</li>
+                <li>全体の合計値が視覚的にわかる</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 積み重ね棒グラフ（Stacked Bar Chart）=====
+        // 複数のデータセットを積み重ねて表示
+        // 各カテゴリの内訳と合計を同時に確認できる
+        // 売上の内訳、予算の構成などに適している
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: X軸のラベル
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+
+            // datasets: 複数のデータセット（積み重ねる順に定義）
+            // 配列の先頭が一番下、末尾が一番上に表示される
+            datasets: [
+                {
+                    // 1つ目（一番下）: 商品A
+                    label: '商品A',
+                    data: [50, 60, 70, 80, 90, 100],
+                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    // 2つ目（中央）: 商品B
+                    label: '商品B',
+                    data: [40, 45, 55, 60, 65, 70],
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    // 3つ目（一番上）: 商品C
+                    label: '商品C',
+                    data: [30, 35, 40, 45, 50, 55],
+                    backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'bar',
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '商品別月間売上（積み重ね）'
+                    }
+                },
+
+                // ★ scales: 積み重ねの設定がポイント
+                scales: {
+                    x: {
+                        // stacked: true でX軸方向に積み重ね
+                        stacked: true
+                    },
+                    y: {
+                        // stacked: true でY軸方向に積み重ね
+                        // x と y の両方を true にすることで積み重ね棒グラフになる
+                        stacked: true,
+
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: '売上（万円）'
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

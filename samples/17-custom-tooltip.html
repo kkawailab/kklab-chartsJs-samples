@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>17 - ツールチップのカスタマイズ</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>17 - ツールチップのカスタマイズ</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>tooltip.callbacksでツールチップの内容をカスタマイズ</li>
+                <li>title, label, footer等のコールバック関数</li>
+                <li>ツールチップのスタイル（色、フォント等）の変更</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== ツールチップのカスタマイズ =====
+        // ツールチップはマウスホバー時に表示される情報ボックス
+        // callbacksを使って表示内容を自由にカスタマイズできる
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // 追加のデータ（ツールチップで使用）
+        // チャートのdataとは別に、詳細情報を持つ配列を用意
+        const salesData = [
+            { month: '1月', sales: 120, target: 100, growth: 20 },
+            { month: '2月', sales: 150, target: 120, growth: 25 },
+            { month: '3月', sales: 180, target: 150, growth: 20 },
+            { month: '4月', sales: 200, target: 180, growth: 11 },
+            { month: '5月', sales: 220, target: 200, growth: 10 },
+            { month: '6月', sales: 250, target: 220, growth: 14 }
+        ];
+
+        // チャートのデータ定義
+        const data = {
+            // salesDataからラベルを抽出
+            labels: salesData.map(d => d.month),
+
+            datasets: [{
+                label: '売上',
+                // salesDataから売上データを抽出
+                data: salesData.map(d => d.sales),
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'bar',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '月別売上（カスタムツールチップ）'
+                    },
+
+                    // ★ tooltip: ツールチップのカスタマイズ
+                    tooltip: {
+                        // 背景色
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+
+                        // タイトル部分のスタイル
+                        titleColor: '#fff',
+                        titleFont: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+
+                        // 本文部分のスタイル
+                        bodyColor: '#fff',
+                        bodyFont: {
+                            size: 14
+                        },
+
+                        // フッター部分のスタイル
+                        footerColor: '#aaa',
+                        footerFont: {
+                            size: 12,
+                            style: 'italic'
+                        },
+
+                        // 内側の余白
+                        padding: 15,
+
+                        // 角丸
+                        cornerRadius: 10,
+
+                        // 色のボックスを表示
+                        displayColors: true,
+
+                        // ★ callbacks: ツールチップの内容をカスタマイズ
+                        callbacks: {
+                            // title: ツールチップのタイトルをカスタマイズ
+                            title: function(tooltipItems) {
+                                // tooltipItems[0].label で現在のラベル（月）を取得
+                                return '📊 ' + tooltipItems[0].label + 'の実績';
+                            },
+
+                            // label: ツールチップの本文をカスタマイズ
+                            label: function(context) {
+                                // context.dataIndex で現在のデータのインデックスを取得
+                                const index = context.dataIndex;
+                                const item = salesData[index];
+
+                                // 配列を返すと複数行で表示される
+                                return [
+                                    `売上: ¥${item.sales}万`,
+                                    `目標: ¥${item.target}万`,
+                                    `達成率: ${Math.round(item.sales / item.target * 100)}%`
+                                ];
+                            },
+
+                            // footer: ツールチップのフッターをカスタマイズ
+                            footer: function(tooltipItems) {
+                                const index = tooltipItems[0].dataIndex;
+                                const item = salesData[index];
+                                return `前月比: +${item.growth}%`;
+                            }
+                        }
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '売上（万円）'
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

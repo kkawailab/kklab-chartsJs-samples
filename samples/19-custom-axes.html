@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>19 - 軸のカスタマイズ</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>19 - 軸のカスタマイズ</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>軸のタイトル、グリッド線、目盛りのカスタマイズ</li>
+                <li>ticks.callbackで目盛りラベルをフォーマット</li>
+                <li>min, max, stepSizeで軸の範囲を制御</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 軸のカスタマイズ =====
+        // X軸、Y軸のタイトル、目盛り、グリッド線などを詳細にカスタマイズ
+        // ticks.callbackを使って目盛りラベルをフォーマット
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+
+            datasets: [{
+                label: '月間売上',
+                // 大きな数値データ（円単位）
+                data: [1200000, 1500000, 1800000, 2100000, 1900000, 2200000, 2500000, 2300000, 2600000, 2800000, 3000000, 3500000],
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'bar',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '年間売上推移（軸カスタマイズ）',
+                        // タイトルのフォントサイズ
+                        font: {
+                            size: 18
+                        }
+                    }
+                },
+
+                // ★ scales: 軸のカスタマイズ
+                scales: {
+                    // X軸の設定
+                    x: {
+                        // title: X軸のタイトル
+                        title: {
+                            display: true,
+                            text: '月',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            color: '#666'
+                        },
+
+                        // grid: グリッド線の設定
+                        grid: {
+                            // display: false でグリッド線を非表示
+                            display: false
+                        },
+
+                        // ticks: 目盛りの設定
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#333'
+                        }
+                    },
+
+                    // Y軸の設定
+                    y: {
+                        // title: Y軸のタイトル
+                        title: {
+                            display: true,
+                            text: '売上金額',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            color: '#666'
+                        },
+
+                        // min, max: 軸の範囲を指定
+                        min: 0,
+                        max: 4000000,
+
+                        // ticks: 目盛りの設定
+                        ticks: {
+                            // stepSize: 目盛りの間隔
+                            stepSize: 500000,
+
+                            // ★ callback: 目盛りラベルをカスタマイズ
+                            // 大きな数値を読みやすい形式に変換
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    // 100万以上は「M」（Million）で表示
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                } else if (value >= 1000) {
+                                    // 1000以上は「K」（Kilo）で表示
+                                    return (value / 1000) + 'K';
+                                }
+                                return value;
+                            },
+
+                            font: {
+                                size: 12
+                            },
+                            color: '#333'
+                        },
+
+                        // grid: グリッド線の設定
+                        grid: {
+                            // グリッド線の色
+                            color: 'rgba(0, 0, 0, 0.1)',
+                            // グリッド線の太さ
+                            lineWidth: 1,
+                            // 軸の線を描画
+                            drawBorder: true,
+                            // 軸の線の色
+                            borderColor: '#ccc',
+                            // 軸の線の太さ
+                            borderWidth: 2
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

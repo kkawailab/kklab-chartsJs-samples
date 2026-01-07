@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>05 - ドーナツチャート</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* チャートの高さを固定 */
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>05 - ドーナツチャート</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>ドーナツチャート(type: 'doughnut')の作成方法</li>
+                <li>cutoutで中央の穴のサイズを調整</li>
+                <li>円グラフとの違い（中央に穴がある）</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== ドーナツチャートの作成 =====
+        // ドーナツチャートは円グラフの中央に穴が開いたもの
+        // 中央にテキストを表示したり、よりモダンなデザインに使える
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: 各セクターのラベル
+            labels: ['Chrome', 'Safari', 'Firefox', 'Edge', 'その他'],
+
+            datasets: [{
+                label: 'ブラウザシェア',
+                // data: 各ブラウザの市場シェア（%）
+                data: [65, 18, 7, 5, 5],
+
+                // backgroundColor: 各ブラウザのブランドカラーに近い色を使用
+                backgroundColor: [
+                    'rgba(66, 133, 244, 0.8)',   // Chrome - Google Blue
+                    'rgba(0, 122, 255, 0.8)',    // Safari - Apple Blue
+                    'rgba(255, 149, 0, 0.8)',    // Firefox - Firefox Orange
+                    'rgba(0, 120, 212, 0.8)',    // Edge - Microsoft Blue
+                    'rgba(128, 128, 128, 0.8)'   // その他 - グレー
+                ],
+
+                // borderColor: 白い枠線でセクター間を区切る
+                borderColor: 'white',
+
+                // borderWidth: 枠線を太くしてセクターを明確に区別
+                borderWidth: 3,
+
+                // hoverOffset: ホバー時のエフェクト（飛び出し距離）
+                hoverOffset: 15
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: 'doughnut' でドーナツチャートを作成
+            // 'pie' との違いは中央に穴があること
+            type: 'doughnut',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // ★ cutout: ドーナツの穴のサイズ
+                // パーセント指定: '60%' = 半径の60%が穴
+                // ピクセル指定: 50 = 50ピクセルの穴
+                // 0または'0%'にすると円グラフと同じになる
+                cutout: '60%',
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Webブラウザ市場シェア 2024'
+                    },
+
+                    // legend: 凡例を下に配置
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

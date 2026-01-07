@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>22 - ドリルダウン機能</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* ===== パンくずリスト（現在の階層を表示）===== */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .breadcrumb span {
+            color: #666;
+        }
+
+        /* クリック可能なリンク */
+        .breadcrumb a {
+            color: #007bff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        /* ヒントテキスト */
+        .hint {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>22 - ドリルダウン機能</h1>
+
+        <!-- パンくずリスト：現在の階層を表示 -->
+        <div class="breadcrumb" id="breadcrumb">
+            <span>現在の表示:</span>
+            <a onclick="showMainChart()">全地域</a>
+        </div>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <!-- 操作のヒント -->
+        <div class="hint" id="hint">バーをクリックすると詳細を表示します</div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>onClick イベントで要素のクリックを検出</li>
+                <li>getElementsAtEventForMode()でクリックされた要素を取得</li>
+                <li>チャートデータの動的な切り替え</li>
+                <li>階層的なデータ構造の表現</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== ドリルダウン機能の実装 =====
+        // クリックでデータの詳細（子データ）を表示し、
+        // 階層的なデータ構造をナビゲートできる
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのインスタンスを保存する変数
+        let myChart;
+
+        // 現在表示している階層（'main' または 'detail'）
+        let currentLevel = 'main';
+
+        // ★ メインデータ（第1階層）
+        const mainData = {
+            labels: ['関東', '関西', '中部', '九州', '北海道'],
+            data: [450, 320, 180, 150, 100],
+            colors: [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)'
+            ]
+        };
+
+        // ★ 詳細データ（第2階層）
+        // 各地域ごとの都道府県別データ
+        const detailData = {
+            '関東': {
+                labels: ['東京', '神奈川', '千葉', '埼玉', '茨城'],
+                data: [200, 100, 60, 50, 40]
+            },
+            '関西': {
+                labels: ['大阪', '京都', '兵庫', '奈良', '滋賀'],
+                data: [150, 70, 50, 30, 20]
+            },
+            '中部': {
+                labels: ['愛知', '静岡', '長野', '岐阜', '新潟'],
+                data: [80, 40, 25, 20, 15]
+            },
+            '九州': {
+                labels: ['福岡', '熊本', '鹿児島', '長崎', '大分'],
+                data: [60, 30, 25, 20, 15]
+            },
+            '北海道': {
+                labels: ['札幌', '旭川', '函館', '釧路', '帯広'],
+                data: [50, 20, 15, 10, 5]
+            }
+        };
+
+        // ★ チャートを作成する関数
+        function createChart(labels, data, colors, title) {
+            // 既存のチャートがあれば破棄
+            // 新しいチャートを作成する前に必ず行う
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            // 新しいチャートを作成
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '売上（百万円）',
+                        data: data,
+                        backgroundColor: colors || 'rgba(54, 162, 235, 0.7)',
+                        // 枠線の色も動的に設定
+                        borderColor: colors ? colors.map(c => c.replace('0.7', '1')) : 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    // ★ onClick: クリックイベントのハンドラー
+                    onClick: handleClick,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '売上（百万円）'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ★ クリックイベントのハンドラー
+        function handleClick(event, elements) {
+            // クリックされた要素がない、または詳細表示中は何もしない
+            if (elements.length === 0 || currentLevel !== 'main') return;
+
+            // クリックされた要素のインデックスを取得
+            const index = elements[0].index;
+            // そのインデックスに対応するラベル（地域名）を取得
+            const region = mainData.labels[index];
+            // 詳細データを取得
+            const detail = detailData[region];
+
+            // 詳細データが存在すれば詳細チャートを表示
+            if (detail) {
+                showDetailChart(region, detail);
+            }
+        }
+
+        // メインチャート（全地域）を表示する関数
+        function showMainChart() {
+            currentLevel = 'main';
+            createChart(
+                mainData.labels,
+                mainData.data,
+                mainData.colors,
+                '地域別売上'
+            );
+
+            // パンくずリストを更新
+            document.getElementById('breadcrumb').innerHTML = `
+                <span>現在の表示:</span>
+                <a onclick="showMainChart()">全地域</a>
+            `;
+            document.getElementById('hint').textContent = 'バーをクリックすると詳細を表示します';
+        }
+
+        // 詳細チャート（都道府県別）を表示する関数
+        function showDetailChart(region, detail) {
+            currentLevel = 'detail';
+            createChart(
+                detail.labels,
+                detail.data,
+                null,  // 詳細では単色を使用
+                `${region}エリア 都道府県別売上`
+            );
+
+            // パンくずリストを更新（戻るリンクを追加）
+            document.getElementById('breadcrumb').innerHTML = `
+                <span>現在の表示:</span>
+                <a onclick="showMainChart()">全地域</a>
+                <span>></span>
+                <span>${region}</span>
+            `;
+            document.getElementById('hint').textContent = '「全地域」をクリックして戻る';
+        }
+
+        // 初期表示：メインチャートを表示
+        showMainChart();
+    </script>
+</body>
+</html>

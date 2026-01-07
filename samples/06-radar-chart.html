@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>06 - レーダーチャート</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* レーダーチャートは正方形に近い形が見やすい */
+        .chart-container {
+            position: relative;
+            height: 450px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>06 - レーダーチャート</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>レーダーチャート(type: 'radar')の作成方法</li>
+                <li>複数の指標を視覚的に比較</li>
+                <li>fillでエリアを塗りつぶし</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== レーダーチャート（スパイダーチャート）の作成 =====
+        // レーダーチャートは複数の指標を一度に比較するのに適している
+        // ゲームのキャラクターステータス、スキル評価などによく使われる
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: 各軸のラベル（放射状に配置される）
+            // 6つの指標 → 六角形のレーダーチャートになる
+            labels: ['攻撃力', '防御力', '速度', '知力', '体力', '運'],
+
+            datasets: [{
+                // label: 凡例に表示される名前
+                label: '勇者',
+
+                // data: 各指標の値（labelsの順番に対応）
+                data: [85, 70, 75, 80, 90, 60],
+
+                // backgroundColor: 塗りつぶしの色（透明度低めで重なりが見える）
+                backgroundColor: 'rgba(255, 99, 132, 0.3)',
+
+                // borderColor: 線の色
+                borderColor: 'rgba(255, 99, 132, 1)',
+
+                // borderWidth: 線の太さ
+                borderWidth: 2,
+
+                // pointBackgroundColor: データポイントの背景色
+                pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+
+                // pointRadius: データポイントのサイズ
+                pointRadius: 5
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: 'radar' でレーダーチャートを作成
+            type: 'radar',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // scales: レーダーチャートでは 'r'（radial = 放射状）軸を設定
+                scales: {
+                    r: {
+                        // beginAtZero: 中心を0から開始
+                        beginAtZero: true,
+
+                        // max: 最大値を設定（ステータスなので100が上限）
+                        max: 100,
+
+                        // ticks: 目盛りの設定
+                        ticks: {
+                            // stepSize: 目盛りの間隔
+                            stepSize: 20
+                        }
+                    }
+                },
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'キャラクターステータス'
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

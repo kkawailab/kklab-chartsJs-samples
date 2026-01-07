@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>25 - 複数Y軸</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>25 - 複数Y軸</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>scales に複数のY軸（y, y1, y2...）を定義</li>
+                <li>各データセットで yAxisID を指定して軸を紐付け</li>
+                <li>position: 'left' / 'right' で軸の位置を指定</li>
+                <li>異なるスケールのデータを1つのチャートで表示</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 複数Y軸のチャート =====
+        // 異なる単位・スケールのデータを1つのチャートで比較
+        // 例：売上（百万円）と気温（℃）と来客数（千人）
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+
+            datasets: [
+                {
+                    // 1つ目のデータセット: 売上（棒グラフ）
+                    type: 'bar',
+                    label: '売上（百万円）',
+                    data: [120, 150, 180, 200, 220, 250, 280, 260, 290, 310, 340, 380],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    // ★ yAxisID: このデータセットを紐付けるY軸を指定
+                    yAxisID: 'y'
+                },
+                {
+                    // 2つ目のデータセット: 気温（折れ線グラフ）
+                    type: 'line',
+                    label: '気温（℃）',
+                    data: [5, 6, 10, 15, 20, 25, 30, 31, 26, 18, 12, 7],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+                    // ★ yAxisID: 右側の1番目の軸を使用
+                    yAxisID: 'y1'
+                },
+                {
+                    // 3つ目のデータセット: 来客数（破線の折れ線グラフ）
+                    type: 'line',
+                    label: '来客数（千人）',
+                    data: [15, 18, 22, 28, 35, 42, 48, 50, 40, 32, 25, 20],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4,
+                    // 破線のスタイル: [線の長さ, 間隔]
+                    borderDash: [5, 5],
+                    // ★ yAxisID: 右側の2番目の軸を使用
+                    yAxisID: 'y2'
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            // 複合チャートのベースタイプ
+            type: 'bar',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // interaction: ホバー時にすべてのデータを表示
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '月別売上・気温・来客数の相関'
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                },
+
+                // ★ scales: 複数のY軸を定義
+                scales: {
+                    // X軸
+                    x: {
+                        title: {
+                            display: true,
+                            text: '月'
+                        }
+                    },
+
+                    // ★ y: 左側のY軸（売上用）
+                    y: {
+                        type: 'linear',        // 線形スケール
+                        display: true,
+                        position: 'left',      // 左側に配置
+                        title: {
+                            display: true,
+                            text: '売上（百万円）',
+                            color: 'rgba(54, 162, 235, 1)'
+                        },
+                        ticks: {
+                            // 目盛りの色をデータの色に合わせる
+                            color: 'rgba(54, 162, 235, 1)'
+                        },
+                        grid: {
+                            // グリッド線を表示
+                            drawOnChartArea: true
+                        }
+                    },
+
+                    // ★ y1: 右側のY軸（気温用）
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',     // 右側に配置
+                        title: {
+                            display: true,
+                            text: '気温（℃）',
+                            color: 'rgba(255, 99, 132, 1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 99, 132, 1)'
+                        },
+                        grid: {
+                            // 右側の軸のグリッド線は非表示（重なりを防ぐ）
+                            drawOnChartArea: false
+                        },
+                        // 軸の範囲を明示的に設定
+                        min: 0,
+                        max: 40
+                    },
+
+                    // ★ y2: 右側の2番目のY軸（来客数用）
+                    y2: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: '来客数（千人）',
+                            color: 'rgba(75, 192, 192, 1)'
+                        },
+                        ticks: {
+                            color: 'rgba(75, 192, 192, 1)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        min: 0,
+                        max: 60,
+                        // ★ afterFit: 軸のレイアウト後に調整
+                        // 複数の右側Y軸が重ならないようにパディングを追加
+                        afterFit: function(scale) {
+                            scale.paddingRight = 10;
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

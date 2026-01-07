@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>29 - レスポンシブデザイン</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* ===== 画面サイズ表示インジケーター ===== */
+        .size-indicator {
+            text-align: center;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        /* ===== チャートグリッドレイアウト ===== */
+        /* CSS Gridを使用したレスポンシブレイアウト */
+        .charts-grid {
+            display: grid;
+            gap: 20px;
+            /* デフォルト: 2列 */
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* ★ メディアクエリ: タブレット以下（768px以下）では1列に */
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== チャートカード ===== */
+        .chart-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 全幅のチャートカード */
+        .chart-card.full-width {
+            /* グリッドの最初から最後の列まで占有 */
+            grid-column: 1 / -1;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .chart-container.tall {
+            height: 300px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>29 - レスポンシブデザイン</h1>
+
+        <!-- 現在の画面サイズを表示 -->
+        <div class="size-indicator" id="sizeIndicator">
+            画面サイズ: <span id="screenSize"></span>
+        </div>
+
+        <!-- チャートグリッド -->
+        <div class="charts-grid">
+            <!-- 折れ線グラフカード -->
+            <div class="chart-card">
+                <div class="chart-title">売上推移</div>
+                <div class="chart-container">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ドーナツチャートカード -->
+            <div class="chart-card">
+                <div class="chart-title">カテゴリ別シェア</div>
+                <div class="chart-container">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 棒グラフカード（全幅） -->
+            <div class="chart-card full-width">
+                <div class="chart-title">地域別売上比較</div>
+                <div class="chart-container tall">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>responsive: true でチャートを自動リサイズ</li>
+                <li>maintainAspectRatio: false で親要素にフィット</li>
+                <li>CSS Gridとメディアクエリでレイアウト調整</li>
+                <li>aspectRatioでチャートの縦横比を制御</li>
+                <li>onResize コールバックでリサイズイベントをハンドル</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== レスポンシブデザイン =====
+        // Chart.jsのレスポンシブ機能とCSSを組み合わせて
+        // 様々な画面サイズに対応するダッシュボードを作成
+
+        // ★ 画面サイズ表示の更新関数
+        function updateSizeIndicator() {
+            const width = window.innerWidth;
+            let sizeLabel = 'Desktop (大)';
+
+            // 画面幅に応じてラベルを変更
+            if (width < 576) sizeLabel = 'Mobile (小)';
+            else if (width < 768) sizeLabel = 'Tablet (中)';
+            else if (width < 992) sizeLabel = 'Small Desktop';
+
+            document.getElementById('screenSize').textContent = `${width}px - ${sizeLabel}`;
+        }
+
+        // ★ ウィンドウリサイズ時に更新
+        window.addEventListener('resize', updateSizeIndicator);
+        updateSizeIndicator();
+
+        // ★ 共通のレスポンシブオプション
+        const responsiveOptions = {
+            // responsive: true でウィンドウサイズに応じてチャートをリサイズ
+            responsive: true,
+
+            // maintainAspectRatio: false で親要素のサイズに合わせる
+            // true だとアスペクト比を維持しようとする
+            maintainAspectRatio: false,
+
+            // ★ onResize: リサイズ時のコールバック
+            onResize: function(chart, size) {
+                // size.width, size.height で新しいサイズを取得可能
+                console.log('Chart resized:', size.width, size.height);
+            }
+        };
+
+        // ===== 折れ線グラフ =====
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                datasets: [{
+                    label: '売上',
+                    data: [65, 78, 90, 85, 92, 105],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                ...responsiveOptions,
+                plugins: {
+                    legend: {
+                        // ★ 画面幅に応じて凡例の表示/非表示を切り替え
+                        display: window.innerWidth > 576,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            // ★ 画面幅に応じてラベルの回転を調整
+                            // 狭い画面では45度回転して見やすく
+                            maxRotation: window.innerWidth < 576 ? 45 : 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // ===== ドーナツチャート =====
+        const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+        new Chart(doughnutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['電子機器', '家電', '日用品', 'その他'],
+                datasets: [{
+                    data: [35, 28, 22, 15],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                ...responsiveOptions,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        // ★ 画面幅に応じて凡例の位置を変更
+                        // 狭い画面では下、広い画面では右
+                        position: window.innerWidth < 576 ? 'bottom' : 'right',
+                        labels: {
+                            // ★ 画面幅に応じて凡例のサイズを調整
+                            boxWidth: window.innerWidth < 576 ? 12 : 20,
+                            font: {
+                                size: window.innerWidth < 576 ? 10 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ===== 棒グラフ =====
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['東京', '大阪', '名古屋', '福岡', '札幌', '仙台', '広島', '京都'],
+                datasets: [
+                    {
+                        label: '2023年',
+                        data: [120, 95, 78, 65, 45, 38, 42, 55],
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                    },
+                    {
+                        label: '2024年',
+                        data: [140, 110, 85, 72, 52, 45, 48, 62],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    }
+                ]
+            },
+            options: {
+                ...responsiveOptions,
+                // ★ indexAxis: 画面幅に応じて縦棒/横棒を切り替え
+                // 狭い画面では横棒（y軸がインデックス）の方が見やすい
+                indexAxis: window.innerWidth < 576 ? 'y' : 'x',
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            font: {
+                                // ★ 画面幅に応じてフォントサイズを調整
+                                size: window.innerWidth < 576 ? 10 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

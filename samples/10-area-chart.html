@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 - エリアチャート</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>10 - エリアチャート</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>fill: true で線の下を塗りつぶし</li>
+                <li>tensionで曲線の滑らかさを調整</li>
+                <li>複数エリアの重なりを半透明で表現</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== エリアチャート（Area Chart）=====
+        // 折れ線グラフの下を塗りつぶしたチャート
+        // データの量や推移を視覚的に強調したい場合に使用
+        // アクセス数、在庫量、累積データなどに適している
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: X軸のラベル（時間帯）
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+
+            datasets: [
+                {
+                    label: 'サイトA',
+                    data: [200, 150, 400, 800, 600, 700, 300],
+
+                    // ★ fill: true がポイント！
+                    // true: 線の下を塗りつぶす（エリアチャート）
+                    // false: 線のみ（折れ線グラフ）
+                    fill: true,
+
+                    // backgroundColor: 塗りつぶしの色
+                    // 半透明（0.3）にして重なりが見えるようにする
+                    backgroundColor: 'rgba(255, 99, 132, 0.3)',
+
+                    // borderColor: 線の色
+                    borderColor: 'rgba(255, 99, 132, 1)',
+
+                    // tension: 曲線の滑らかさ（0-1）
+                    // 0.4 は適度に滑らかな曲線
+                    tension: 0.4
+                },
+                {
+                    label: 'サイトB',
+                    data: [100, 80, 300, 500, 450, 400, 200],
+                    fill: true,
+                    backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    tension: 0.4
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: 'line'（エリアチャートは折れ線グラフの拡張）
+            type: 'line',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '時間帯別アクセス数'
+                    },
+
+                    // filler: 塗りつぶしプラグインの設定
+                    filler: {
+                        // propagate: false = 塗りつぶしを伝播しない
+                        propagate: false
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'アクセス数'
+                        }
+                    }
+                },
+
+                // interaction: ホバー時の動作
+                interaction: {
+                    // intersect: false = データポイント以外でもツールチップ表示
+                    intersect: false
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

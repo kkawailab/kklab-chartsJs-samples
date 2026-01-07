@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>27 - クリックイベント処理</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* チャートと情報パネルを横並びに */
+        .content {
+            display: flex;
+            gap: 20px;
+        }
+
+        .chart-container {
+            flex: 2;
+            position: relative;
+            height: 400px;
+        }
+
+        /* ===== 右側の情報パネル ===== */
+        .info-panel {
+            flex: 1;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .info-panel h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .info-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* イベントログ */
+        .event-log {
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .event-log h4 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .log-entry {
+            font-size: 12px;
+            padding: 5px;
+            background: white;
+            margin: 3px 0;
+            border-radius: 3px;
+            color: #555;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>27 - クリックイベント処理</h1>
+
+        <div class="content">
+            <!-- チャート -->
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+
+            <!-- 右側の情報パネル -->
+            <div class="info-panel">
+                <h3>選択された商品</h3>
+                <div id="selectedInfo">
+                    <p style="color: #999; font-size: 14px;">チャートの要素をクリックしてください</p>
+                </div>
+
+                <!-- イベントログ -->
+                <div class="event-log">
+                    <h4>イベントログ</h4>
+                    <div id="eventLog"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>options.onClickでクリックイベントをハンドル</li>
+                <li>getElementsAtEventForMode()でクリック位置の要素を取得</li>
+                <li>datasetIndex と index でデータを特定</li>
+                <li>クリックに応じた外部要素の更新</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== クリックイベント処理 =====
+        // チャートの要素をクリックした時に詳細情報を表示
+        // onClick, onHoverなどのイベントハンドラーを活用
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // 商品データ（詳細情報を含む）
+        const products = [
+            { name: '商品A', sales: 85, stock: 120, price: 2500, category: '電子機器' },
+            { name: '商品B', sales: 72, stock: 80, price: 1800, category: '家電' },
+            { name: '商品C', sales: 58, stock: 200, price: 3200, category: '電子機器' },
+            { name: '商品D', sales: 45, stock: 150, price: 900, category: '日用品' },
+            { name: '商品E', sales: 38, stock: 90, price: 4500, category: '家電' }
+        ];
+
+        // イベントログのカウンター
+        let eventLogCount = 0;
+
+        // ★ イベントログに追加する関数
+        function addEventLog(message) {
+            const logContainer = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `${++eventLogCount}. ${message}`;
+            // 最新のログを先頭に追加
+            logContainer.insertBefore(entry, logContainer.firstChild);
+
+            // 古いログを削除（最新5件のみ保持）
+            while (logContainer.children.length > 5) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        // ★ 情報パネルを更新する関数
+        function updateInfoPanel(product) {
+            const infoContainer = document.getElementById('selectedInfo');
+            infoContainer.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">商品名</div>
+                    <div class="info-value">${product.name}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">売上数量</div>
+                    <div class="info-value">${product.sales}個</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">在庫数</div>
+                    <div class="info-value">${product.stock}個</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">単価</div>
+                    <div class="info-value">¥${product.price.toLocaleString()}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">カテゴリ</div>
+                    <div class="info-value">${product.category}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">売上金額</div>
+                    <div class="info-value">¥${(product.sales * product.price).toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        // チャートのデータ定義
+        const data = {
+            labels: products.map(p => p.name),
+            datasets: [{
+                label: '売上数量',
+                data: products.map(p => p.sales),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 2
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // ★ onClick: クリックイベントハンドラー
+                // event: ネイティブのクリックイベント
+                // elements: クリックされたチャート要素の配列
+                // chart: Chartインスタンス
+                onClick: (event, elements, chart) => {
+                    if (elements.length > 0) {
+                        // クリックされた要素のインデックスを取得
+                        const index = elements[0].index;
+                        const product = products[index];
+
+                        // イベントログに追加
+                        addEventLog(`${product.name}がクリックされました`);
+                        // 情報パネルを更新
+                        updateInfoPanel(product);
+                    } else {
+                        // チャート外がクリックされた場合
+                        addEventLog('チャート外がクリックされました');
+                    }
+                },
+
+                // ★ onHover: ホバーイベントハンドラー
+                // カーソルを変更してクリック可能であることを示す
+                onHover: (event, elements) => {
+                    event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+                },
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '商品別売上（クリックで詳細表示）'
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '売上数量'
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

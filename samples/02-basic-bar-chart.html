@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>02 - 基本的な棒グラフ</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* チャートの高さを固定するためのコンテナ */
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>02 - 基本的な棒グラフ</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>棒グラフ(type: 'bar')の作成方法</li>
+                <li>各バーに異なる背景色を設定</li>
+                <li>borderColorとborderWidthの設定</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 棒グラフ（バーチャート）の作成 =====
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: X軸のラベル（各バーのカテゴリ名）
+            labels: ['東京', '大阪', '名古屋', '福岡', '札幌', '仙台'],
+
+            datasets: [{
+                // label: 凡例に表示される名前
+                label: '支店別売上（百万円）',
+
+                // data: 各バーの高さを決める数値
+                data: [120, 95, 78, 65, 45, 38],
+
+                // backgroundColor: 各バーの背景色
+                // 配列で指定すると、各バーに個別の色を設定できる
+                // rgba()の4番目の値は透明度（0.7 = 70%不透明）
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',   // 赤系
+                    'rgba(54, 162, 235, 0.7)',   // 青系
+                    'rgba(255, 206, 86, 0.7)',   // 黄色系
+                    'rgba(75, 192, 192, 0.7)',   // シアン系
+                    'rgba(153, 102, 255, 0.7)', // 紫系
+                    'rgba(255, 159, 64, 0.7)'   // オレンジ系
+                ],
+
+                // borderColor: 各バーの枠線の色
+                // 背景色より濃い色（透明度1.0 = 完全不透明）を設定
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+
+                // borderWidth: 枠線の太さ（ピクセル）
+                borderWidth: 2,
+
+                // borderRadius: バーの角を丸くする（ピクセル）
+                borderRadius: 5
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: 'bar' で縦棒グラフを作成
+            type: 'bar',
+
+            data: data,
+
+            options: {
+                // レスポンシブ対応
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // scales: 軸（スケール）の設定
+                scales: {
+                    y: {
+                        // beginAtZero: Y軸を0から開始する
+                        // falseだと最小データ値から開始される
+                        beginAtZero: true
+                    }
+                },
+
+                // plugins: プラグインの設定
+                plugins: {
+                    // title: チャートのタイトル
+                    title: {
+                        display: true,
+                        text: '支店別売上比較'
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

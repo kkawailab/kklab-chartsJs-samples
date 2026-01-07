@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12 - バブルチャート</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>12 - バブルチャート</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>バブルチャート(type: 'bubble')の作成方法</li>
+                <li>データを{x, y, r}オブジェクト形式で指定（rはバブルの半径）</li>
+                <li>3つの次元のデータを2D空間で表現</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== バブルチャートの作成 =====
+        // バブルチャートは3つの変数を同時に表現できる
+        // X軸、Y軸に加えて、バブルのサイズで3つ目の変数を表す
+        // 例：成長率(X)、利益率(Y)、従業員数(サイズ)
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            datasets: [
+                {
+                    label: 'IT企業',
+                    // ★ バブルチャートのデータ形式: {x, y, r}オブジェクトの配列
+                    // x: X軸の値、y: Y軸の値、r: バブルの半径（ピクセル）
+                    data: [
+                        { x: 80, y: 90, r: 25 },  // 大企業
+                        { x: 70, y: 85, r: 18 },  // 中企業
+                        { x: 60, y: 75, r: 12 }   // 小企業
+                    ],
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)'
+                },
+                {
+                    label: '製造業',
+                    data: [
+                        { x: 50, y: 65, r: 30 },
+                        { x: 45, y: 55, r: 20 },
+                        { x: 55, y: 70, r: 15 }
+                    ],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)'
+                },
+                {
+                    label: '小売業',
+                    data: [
+                        { x: 35, y: 45, r: 22 },
+                        { x: 40, y: 50, r: 16 },
+                        { x: 30, y: 40, r: 28 }
+                    ],
+                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                    borderColor: 'rgba(255, 206, 86, 1)'
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: 'bubble' でバブルチャートを作成
+            type: 'bubble',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '業界別企業分析（X: 成長率, Y: 利益率, サイズ: 従業員数）'
+                    },
+
+                    // tooltip: ツールチップのカスタマイズ
+                    tooltip: {
+                        callbacks: {
+                            // label: ツールチップに表示するラベルをカスタマイズ
+                            label: function(context) {
+                                // context.raw でデータオブジェクト{x, y, r}を取得
+                                const data = context.raw;
+                                // rを従業員数に変換して表示
+                                return `${context.dataset.label}: 成長率 ${data.x}%, 利益率 ${data.y}%, 従業員 ${data.r * 100}人`;
+                            }
+                        }
+                    }
+                },
+
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '成長率（%）'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '利益率（%）'
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

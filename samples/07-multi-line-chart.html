@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>07 - 複数データセットの折れ線グラフ</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>07 - 複数データセットの折れ線グラフ</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>複数のdatasetsを配列で定義</li>
+                <li>各データセットに異なる色を設定</li>
+                <li>凡例（legend）で各線を識別</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 複数データセットの折れ線グラフ =====
+        // 複数のデータを同じチャートで比較できる
+        // 例：複数都市の気温比較、複数製品の売上比較など
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            // labels: X軸のラベル（すべてのデータセットで共通）
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+
+            // datasets: 複数のデータセットを配列で定義
+            // 配列に複数のオブジェクトを入れることで、複数の線を表示
+            datasets: [
+                {
+                    // 1つ目のデータセット: 東京
+                    label: '東京',
+                    data: [5.2, 5.7, 8.7, 13.9, 18.2, 21.4],
+                    // 赤系の色
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    // tension: 曲線の滑らかさ
+                    tension: 0.3
+                },
+                {
+                    // 2つ目のデータセット: 大阪
+                    label: '大阪',
+                    data: [6.0, 6.3, 9.4, 15.1, 19.7, 23.5],
+                    // 青系の色
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.3
+                },
+                {
+                    // 3つ目のデータセット: 札幌
+                    label: '札幌',
+                    data: [-3.6, -3.1, 0.6, 7.1, 12.4, 16.7],
+                    // シアン系の色
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.3
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'line',
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // interaction: マウスホバー時の動作設定
+                interaction: {
+                    // mode: 'index' = 同じX軸位置の全データを表示
+                    // 'nearest' = 最も近いデータのみ表示
+                    mode: 'index',
+
+                    // intersect: false = データポイント上でなくてもツールチップ表示
+                    // true = データポイント上のみ
+                    intersect: false
+                },
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '主要都市の月別平均気温（℃）'
+                    }
+                },
+
+                // scales: 軸の設定
+                scales: {
+                    y: {
+                        // title: Y軸のタイトル
+                        title: {
+                            display: true,
+                            text: '気温（℃）'
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

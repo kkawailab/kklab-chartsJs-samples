@@ -1,0 +1,29 @@
+# LaTeX auxiliary files
+*.aux
+*.log
+*.toc
+*.idx
+*.ilg
+*.ind
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Node.js
+node_modules/
+package-lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Project-specific
+GUIDE.md

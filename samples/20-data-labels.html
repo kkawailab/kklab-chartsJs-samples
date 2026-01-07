@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20 - データラベルの表示</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- ★ chartjs-plugin-datalabels: データラベル表示用のプラグイン -->
+    <!-- Chart.js本体とは別に読み込む必要がある -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>20 - データラベルの表示</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>chartjs-plugin-datalabelsプラグインの使用</li>
+                <li>データポイント上に値を直接表示</li>
+                <li>ラベルの位置、色、フォントのカスタマイズ</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== データラベルの表示 =====
+        // chartjs-plugin-datalabelsを使用して、
+        // データポイント上に直接値を表示する
+
+        // ★ プラグインをChart.jsに登録
+        // グローバルに登録することで、すべてのチャートで使用可能になる
+        Chart.register(ChartDataLabels);
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            labels: ['東京', '大阪', '名古屋', '福岡', '札幌'],
+
+            datasets: [{
+                label: '売上（億円）',
+                data: [85, 62, 45, 38, 28],
+
+                // 各バーに異なる色を設定
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ],
+
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+
+                borderWidth: 2,
+                // バーの角を丸くする
+                borderRadius: 8
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'bar',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '地域別売上（データラベル付き）'
+                    },
+
+                    // 凡例を非表示（1つのデータセットのみなので不要）
+                    legend: {
+                        display: false
+                    },
+
+                    // ★ datalabels: データラベルの設定
+                    datalabels: {
+                        // anchor: ラベルの固定位置
+                        // 'center', 'start', 'end' から選択
+                        anchor: 'end',
+
+                        // align: anchorからの配置方向
+                        // 'center', 'start', 'end', 'top', 'bottom', 'left', 'right' など
+                        align: 'top',
+
+                        // ラベルの色
+                        color: '#333',
+
+                        // フォントの設定
+                        font: {
+                            weight: 'bold',
+                            size: 14
+                        },
+
+                        // ★ formatter: ラベルの表示内容をカスタマイズ
+                        // value: データの値
+                        // context: コンテキスト情報（dataIndex, dataset等）
+                        formatter: function(value) {
+                            // 値に「億円」を追加
+                            return value + '億円';
+                        },
+
+                        // ラベルの余白
+                        padding: {
+                            top: 5
+                        }
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        // ラベルが見切れないように最大値を設定
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: '売上（億円）'
+                        }
+                    }
+                }
+            },
+
+            // ★ plugins: 使用するプラグインを配列で指定
+            plugins: [ChartDataLabels]
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

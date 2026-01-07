@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14 - 複合チャート（棒と線）</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>14 - 複合チャート（棒と線）</h1>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>各データセットに異なるtypeを指定</li>
+                <li>棒グラフと折れ線グラフを組み合わせる</li>
+                <li>orderプロパティで描画順序を制御</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== 複合チャート（Mixed Chart）の作成 =====
+        // 異なる種類のチャートを1つのグラフに組み合わせることができる
+        // 例：棒グラフで売上実績、折れ線グラフで目標値を表示
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // チャートのデータ定義
+        const data = {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+
+            // datasets: 複数のチャートタイプを混在させる
+            datasets: [
+                {
+                    // ★ type: 各データセットに個別のチャートタイプを指定
+                    type: 'bar',
+                    label: '売上（万円）',
+                    data: [120, 150, 180, 200, 220, 250],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    // order: 描画順序（大きい数値が先に描画＝後ろに表示）
+                    order: 2
+                },
+                {
+                    type: 'line',
+                    label: '目標（万円）',
+                    data: [130, 140, 160, 190, 210, 240],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    borderWidth: 3,
+                    // borderDash: 破線のパターン [線の長さ, 間隔]
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.1,
+                    order: 1
+                },
+                {
+                    type: 'line',
+                    label: '累計売上（万円）',
+                    data: [120, 270, 450, 650, 870, 1120],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    // yAxisID: 別のY軸を使用（右側のY軸）
+                    yAxisID: 'y1',
+                    order: 0
+                }
+            ]
+        };
+
+        // チャートの設定
+        const config = {
+            // type: デフォルトのチャートタイプ（個別にtypeを指定しない場合に使用）
+            type: 'bar',
+
+            data: data,
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '月別売上実績と目標の比較'
+                    }
+                },
+
+                // scales: 複数のY軸を定義
+                scales: {
+                    // y: 左側のY軸（デフォルト）
+                    y: {
+                        beginAtZero: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: '月間売上（万円）'
+                        }
+                    },
+                    // y1: 右側のY軸（累計売上用）
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: '累計売上（万円）'
+                        },
+                        // grid: 右側のY軸のグリッド線は非表示
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを描画
+        new Chart(ctx, config);
+    </script>
+</body>
+</html>

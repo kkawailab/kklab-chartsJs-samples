@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 文字エンコーディングをUTF-8に設定 -->
+    <meta charset="UTF-8">
+    <!-- レスポンシブデザイン用のビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>21 - リアルタイムデータ更新</title>
+    <!-- Chart.js ライブラリをCDNから読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== CSSリセット ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== ページ全体のスタイル ===== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        /* ===== メインコンテナ ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        /* ===== コントロールボタン ===== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        /* 開始ボタン */
+        .controls button.start {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* 停止ボタン */
+        .controls button.stop {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .controls button:hover {
+            opacity: 0.8;
+        }
+
+        /* ===== 統計情報表示エリア ===== */
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>21 - リアルタイムデータ更新</h1>
+
+        <!-- 開始・停止ボタン -->
+        <div class="controls">
+            <button class="start" onclick="startUpdate()">開始</button>
+            <button class="stop" onclick="stopUpdate()">停止</button>
+        </div>
+
+        <!-- Chart.jsがグラフを描画するcanvas要素 -->
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <!-- リアルタイム統計情報 -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="currentValue">0</div>
+                <div class="stat-label">現在値</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="maxValue">0</div>
+                <div class="stat-label">最大値</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="minValue">0</div>
+                <div class="stat-label">最小値</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avgValue">0</div>
+                <div class="stat-label">平均値</div>
+            </div>
+        </div>
+
+        <div class="description">
+            <strong>学習ポイント:</strong>
+            <ul>
+                <li>chart.data.datasets[0].data.push()でデータを追加</li>
+                <li>chart.data.labels.push()でラベルを追加</li>
+                <li>chart.update()でチャートを更新</li>
+                <li>setInterval()で定期的にデータを更新</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // ===== リアルタイムデータ更新の実装 =====
+        // setInterval()を使用して定期的にデータを追加し、
+        // chart.update()でチャートをリアルタイムに更新する
+
+        // canvas要素の2Dコンテキストを取得
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        // 表示するデータポイントの最大数
+        // これを超えると古いデータが削除される
+        const maxDataPoints = 20;
+
+        // setInterval()のIDを保存（停止時に使用）
+        let intervalId = null;
+
+        // チャートのデータ定義
+        // 初期状態は空の配列
+        const data = {
+            labels: [],  // X軸のラベル（時刻）
+            datasets: [{
+                label: 'CPU使用率（%）',
+                data: [],  // Y軸のデータ
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.4  // 曲線の滑らかさ
+            }]
+        };
+
+        // チャートの設定
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // animation: アニメーション設定
+                animation: {
+                    // duration: アニメーション時間を短くして滑らかに更新
+                    duration: 300
+                },
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'リアルタイム CPU モニタリング'
+                    }
+                },
+
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '時間'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,  // CPU使用率なので最大100%
+                        title: {
+                            display: true,
+                            text: '使用率（%）'
+                        }
+                    }
+                }
+            }
+        };
+
+        // チャートを作成して変数に保存
+        // 後でデータを更新するために参照が必要
+        const myChart = new Chart(ctx, config);
+
+        // ランダムな値を生成する関数
+        // 実際のアプリケーションではAPIからデータを取得する
+        function getRandomValue() {
+            return Math.floor(Math.random() * 60) + 20;  // 20〜80の間
+        }
+
+        // 現在時刻を取得する関数
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('ja-JP', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 統計情報を更新する関数
+        function updateStats() {
+            const dataPoints = myChart.data.datasets[0].data;
+            if (dataPoints.length === 0) return;
+
+            // 現在値、最大値、最小値、平均値を計算
+            const current = dataPoints[dataPoints.length - 1];
+            const max = Math.max(...dataPoints);
+            const min = Math.min(...dataPoints);
+            const avg = (dataPoints.reduce((a, b) => a + b, 0) / dataPoints.length).toFixed(1);
+
+            // HTMLの表示を更新
+            document.getElementById('currentValue').textContent = current;
+            document.getElementById('maxValue').textContent = max;
+            document.getElementById('minValue').textContent = min;
+            document.getElementById('avgValue').textContent = avg;
+        }
+
+        // ★ データを追加する関数
+        function addData() {
+            const newValue = getRandomValue();
+            const newLabel = getCurrentTime();
+
+            // ★ データとラベルを追加
+            // push()で配列の末尾に追加
+            myChart.data.labels.push(newLabel);
+            myChart.data.datasets[0].data.push(newValue);
+
+            // 最大データ数を超えたら古いデータを削除
+            if (myChart.data.labels.length > maxDataPoints) {
+                // shift()で配列の先頭を削除
+                myChart.data.labels.shift();
+                myChart.data.datasets[0].data.shift();
+            }
+
+            // ★ チャートを更新
+            // 'none' を指定するとアニメーションなしで即座に更新
+            myChart.update('none');
+
+            // 統計情報も更新
+            updateStats();
+        }
+
+        // ★ 更新を開始する関数
+        function startUpdate() {
+            // 既に実行中の場合は何もしない
+            if (intervalId) return;
+
+            // 1秒（1000ミリ秒）ごとにaddData()を実行
+            intervalId = setInterval(addData, 1000);
+        }
+
+        // ★ 更新を停止する関数
+        function stopUpdate() {
+            if (intervalId) {
+                // clearInterval()でタイマーを停止
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+        // 初期データを追加（10点）
+        for (let i = 0; i < 10; i++) {
+            addData();
+        }
+    </script>
+</body>
+</html>
